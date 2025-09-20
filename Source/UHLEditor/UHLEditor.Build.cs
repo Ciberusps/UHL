@@ -51,7 +51,6 @@ public class UHLEditor : ModuleRules
 				"DeveloperSettings", 
 				
 				"UnrealHelperLibrary",
-				"UHLModulesHelper",
 				
 				"EditorWidgets",
 				
