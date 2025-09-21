@@ -5,14 +5,10 @@
 
 namespace UHLGameplayTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_AbilityInputBlocked, "Gameplay.AbilityInputBlocked");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_UHL_Debug_CheckGASGameplayTagsOnActor, "UHL.Debug.CheckGASGameplayTagsOnActor");
 
 	// Abilities
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_UHL_Abilities_Character_GlobalTimeDilation, "UHL.Abilities.Character.GlobalTimeDilation", "");
-
-	// AbilityInputCache
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_UHL_AbilityInputCache_Catching, "UHL.AbilityInputCache.Catching", "Opened for catching actions to AbilityInputCache");
 
 	// Debug Categories
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_UHL_DebugCategory_AbilitySystem, "UHL.DebugCategory.AbilitySystem", "");
