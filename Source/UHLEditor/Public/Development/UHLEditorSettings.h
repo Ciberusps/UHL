@@ -32,4 +32,7 @@ class UHLEDITOR_API UUHLEditorSettings : public UDeveloperSettings
 public:
     UPROPERTY(config, EditAnywhere, Category="Custom Class Icons", meta=(FullyExpand))
     TArray<FUHLEditorCustomClassIconDescription> CustomClassIcons;
+
+	virtual FName GetCategoryName() const override { return FName("UnrealHelperLibrary"); }
+	
 };

@@ -21,6 +21,6 @@ public:
 	
 protected:
 //~UDeveloperSettings interface
-	virtual FName GetCategoryName() const override { return TEXT("Plugins"); };
+	virtual FName GetCategoryName() const override { return FName("UnrealHelperLibrary"); }
 //~End of UDeveloperSettings interface
 };
