@@ -51,12 +51,36 @@ void UAN_AttachActorWithUniqueId::Notify(
 	FActorSpawnParameters ActorSpawnParameters;
 	ActorSpawnParameters.Owner = OwnerActor;
 	ActorSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AActor* SpawnedActor = nullptr;
+	USceneComponent* AttachmentComp = nullptr;
 
-	AActor* SpawnedActor = MeshComp->GetWorld()->SpawnActor<AActor>(ActorClass,
-		MeshComp->GetSocketTransform(SocketName), ActorSpawnParameters);
-
+	if (!bUseWeaponSocketForAttachment)
+	{
+		AttachmentComp = MeshComp;
+		SpawnedActor = MeshComp->GetWorld()->SpawnActor<AActor>(ActorClass, MeshComp->GetSocketTransform(SocketName), ActorSpawnParameters);
+	}
+	else
+	{
+		UStaticMeshComponent* WeaponMesh = nullptr;
+		TArray<AActor*> AttachedActors;
+		OwnerActor->GetAttachedActors(AttachedActors);
+		for (int32 i = 0; i < AttachedActors.Num(); ++i)
+			{
+				if (AttachedActors[i]->GetComponentByClass(UStaticMeshComponent::StaticClass()))
+				{
+					WeaponMesh = Cast<UStaticMeshComponent>(AttachedActors[i]->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+					if (WeaponMesh->DoesSocketExist(SocketName))
+					{
+						AttachmentComp = WeaponMesh;
+						SpawnedActor = WeaponMesh->GetWorld()->SpawnActor<AActor>(ActorClass,WeaponMesh->GetSocketTransform(SocketName),ActorSpawnParameters);
+						break;
+					}
+				}
+			}
+	}
+	
 	if (!SpawnedActor) return;
 
-	SpawnedActor->AttachToComponent(MeshComp, AttachmentRules.ToEngineRules(), SocketName);
+	SpawnedActor->AttachToComponent(AttachmentComp, AttachmentRules.ToEngineRules(), SocketName);
 	SpawnedActor->Tags.Add(UniqueId);
 }

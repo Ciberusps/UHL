@@ -39,7 +39,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttachActorWithUniqueId")
 	FName UniqueId = "Unique_ID";
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttachActorWithUniqueId")
+	bool bUseWeaponSocketForAttachment = false;
+
 	UPROPERTY(EditAnywhere, Category="AttachActorWithUniqueId", meta = (AnimNotifyBoneName = "true"))
 	FName SocketName = "";
 
