@@ -28,6 +28,9 @@
  * @param UniqueId          A user-defined string used as a tag on the spawned actor.
  * @param AttachmentTransformRules    Attachment rules
  */
+
+class UAttachmentEvaluator;
+
 UCLASS()
 class UNREALHELPERLIBRARY_API UAN_AttachActorWithUniqueId : public UAN_UHL_Base
 {
@@ -40,8 +43,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttachActorWithUniqueId")
 	FName UniqueId = "Unique_ID";
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttachActorWithUniqueId")
-	bool bUseWeaponSocketForAttachment = false;
+	UPROPERTY(EditAnywhere, Category = "AttachActorWithUniqueId")
+	bool bUseChildActorForAttachment = false;
+
+	UPROPERTY(EditAnywhere, Category = "AttachActorWithUniqueId", meta = (EditCondition = "bUseChildActorForAttachment"))
+	TSubclassOf<UAttachmentEvaluator> LHActorEvaluator;
+
+	UPROPERTY(EditAnywhere, Category = "AttachActorWithUniqueId", meta = (EditCondition = "bUseChildActorForAttachment"))
+	TSubclassOf<UAttachmentEvaluator> RHActorEvaluator;
 
 	UPROPERTY(EditAnywhere, Category="AttachActorWithUniqueId", meta = (AnimNotifyBoneName = "true"))
 	FName SocketName = "";
