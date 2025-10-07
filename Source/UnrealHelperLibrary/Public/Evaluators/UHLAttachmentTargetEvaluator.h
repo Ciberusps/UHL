@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "AttachmentEvaluator.generated.h"
+#include "UHLAttachmentTargetEvaluator.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable, BlueprintType)
-class UNREALHELPERLIBRARY_API UAttachmentEvaluator : public UObject
+class UNREALHELPERLIBRARY_API UUHLAttachmentTargetEvaluator : public UObject
 {
 	GENERATED_BODY()
 
@@ -20,5 +20,5 @@ public:
 	FString SourceName;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	AActor* GetActorWithChild(AActor* OwnerActor) const;
+	UMeshComponent* GetMeshComponent(AActor* OwnerActor) const;
 };

@@ -2,7 +2,7 @@
 
 
 #include "Animation/Notifies/AN_AttachActorWithUniqueId.h"
-#include "Evaluators/AttachmentEvaluator.h"
+#include "Evaluators/UHLAttachmentTargetEvaluator.h"
 #include "Components/SkeletalMeshComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AN_AttachActorWithUniqueId)
@@ -63,23 +63,17 @@ void UAN_AttachActorWithUniqueId::Notify(
 	else
 	{
 		USkeletalMeshComponent* WeaponMesh = nullptr;
-		if (RHActorEvaluator)
+		if (ChildActorTarget)
 		{
-			UAttachmentEvaluator* RHE = Cast<UAttachmentEvaluator>(RHActorEvaluator->GetDefaultObject());
-			AActor* TempOwner = RHE->GetActorWithChild(OwnerActor);
-			WeaponMesh = Cast<USkeletalMeshComponent>(TempOwner->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+			UUHLAttachmentTargetEvaluator* Evaluator = NewObject<UUHLAttachmentTargetEvaluator>(ChildActorTarget);
+			AttachmentComp = Evaluator->GetMeshComponent(OwnerActor);
+			SpawnedActor = AttachmentComp->GetWorld()->SpawnActor<AActor>(ActorClass, AttachmentComp->GetSocketTransform(SocketName), ActorSpawnParameters);
 		}
-		if (LHActorEvaluator)
-		{
-			UAttachmentEvaluator* LHE = Cast<UAttachmentEvaluator>(RHActorEvaluator->GetDefaultObject());
-			AActor* TempOwner = LHE->GetActorWithChild(OwnerActor);
-			WeaponMesh = Cast<USkeletalMeshComponent>(TempOwner->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
-		}
-		if (WeaponMesh->DoesSocketExist(SocketName))
+		/*if (WeaponMesh->DoesSocketExist(SocketName))
 		{
 			AttachmentComp = WeaponMesh;
 			SpawnedActor = WeaponMesh->GetWorld()->SpawnActor<AActor>(ActorClass,WeaponMesh->GetSocketTransform(SocketName),ActorSpawnParameters);
-		}
+		}*/
 	}
 	
 	if (!SpawnedActor) return;
