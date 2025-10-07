@@ -62,18 +62,12 @@ void UAN_AttachActorWithUniqueId::Notify(
 	}
 	else
 	{
-		USkeletalMeshComponent* WeaponMesh = nullptr;
 		if (ChildActorTarget)
 		{
-			UUHLAttachmentTargetEvaluator* Evaluator = NewObject<UUHLAttachmentTargetEvaluator>(ChildActorTarget);
+			UUHLAttachmentTargetEvaluator* Evaluator = NewObject<UUHLAttachmentTargetEvaluator>(OwnerActor, ChildActorTarget);
 			AttachmentComp = Evaluator->GetMeshComponent(OwnerActor);
 			SpawnedActor = AttachmentComp->GetWorld()->SpawnActor<AActor>(ActorClass, AttachmentComp->GetSocketTransform(SocketName), ActorSpawnParameters);
 		}
-		/*if (WeaponMesh->DoesSocketExist(SocketName))
-		{
-			AttachmentComp = WeaponMesh;
-			SpawnedActor = WeaponMesh->GetWorld()->SpawnActor<AActor>(ActorClass,WeaponMesh->GetSocketTransform(SocketName),ActorSpawnParameters);
-		}*/
 	}
 	
 	if (!SpawnedActor) return;
