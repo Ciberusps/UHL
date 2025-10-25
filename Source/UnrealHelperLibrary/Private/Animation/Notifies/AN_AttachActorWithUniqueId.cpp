@@ -2,7 +2,7 @@
 
 
 #include "Animation/Notifies/AN_AttachActorWithUniqueId.h"
-
+#include "Evaluators/UHLAttachmentTargetEvaluator.h"
 #include "Components/SkeletalMeshComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AN_AttachActorWithUniqueId)
@@ -48,15 +48,30 @@ void UAN_AttachActorWithUniqueId::Notify(
 		return;
 	}
 
+
 	FActorSpawnParameters ActorSpawnParameters;
 	ActorSpawnParameters.Owner = OwnerActor;
 	ActorSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AActor* SpawnedActor = nullptr;
+	USceneComponent* AttachmentComp = nullptr;
 
-	AActor* SpawnedActor = MeshComp->GetWorld()->SpawnActor<AActor>(ActorClass,
-		MeshComp->GetSocketTransform(SocketName), ActorSpawnParameters);
-
+	if (!bUseChildActorForAttachment)
+	{
+		AttachmentComp = MeshComp;
+		SpawnedActor = MeshComp->GetWorld()->SpawnActor<AActor>(ActorClass, MeshComp->GetSocketTransform(SocketName), ActorSpawnParameters);
+	}
+	else
+	{
+		if (ChildActorTarget)
+		{
+			UUHLAttachmentTargetEvaluator* Evaluator = NewObject<UUHLAttachmentTargetEvaluator>(OwnerActor, ChildActorTarget);
+			AttachmentComp = Evaluator->GetMeshComponent(OwnerActor);
+			SpawnedActor = AttachmentComp->GetWorld()->SpawnActor<AActor>(ActorClass, AttachmentComp->GetSocketTransform(SocketName), ActorSpawnParameters);
+		}
+	}
+	
 	if (!SpawnedActor) return;
 
-	SpawnedActor->AttachToComponent(MeshComp, AttachmentRules.ToEngineRules(), SocketName);
+	SpawnedActor->AttachToComponent(AttachmentComp, AttachmentRules.ToEngineRules(), SocketName);
 	SpawnedActor->Tags.Add(UniqueId);
 }

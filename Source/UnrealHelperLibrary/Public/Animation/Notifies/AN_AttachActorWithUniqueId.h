@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Animation/Notifies/AN_UHL_Base.h"
 #include "Core/UHLAttachmentRules.h"
+#include "Evaluators/UHLAttachmentEvaluator_ThisMesh.h"
 #include "Engine/EngineTypes.h"
 #include "AN_AttachActorWithUniqueId.generated.h"
 
@@ -28,6 +29,9 @@
  * @param UniqueId          A user-defined string used as a tag on the spawned actor.
  * @param AttachmentTransformRules    Attachment rules
  */
+
+class UUHLAttachmentTargetEvaluator;
+
 UCLASS()
 class UNREALHELPERLIBRARY_API UAN_AttachActorWithUniqueId : public UAN_UHL_Base
 {
@@ -39,7 +43,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AttachActorWithUniqueId")
 	FName UniqueId = "Unique_ID";
-	
+
+	UPROPERTY(EditAnywhere, Category = "AttachActorWithUniqueId")
+	bool bUseChildActorForAttachment = false;
+
+	UPROPERTY(EditAnywhere, Category = "AttachActorWithUniqueId", meta = (EditCondition = "bUseChildActorForAttachment"))
+	TSubclassOf<UUHLAttachmentTargetEvaluator> ChildActorTarget = UUHLAttachmentEvaluator_ThisMesh::StaticClass();
+
 	UPROPERTY(EditAnywhere, Category="AttachActorWithUniqueId", meta = (AnimNotifyBoneName = "true"))
 	FName SocketName = "";
 
