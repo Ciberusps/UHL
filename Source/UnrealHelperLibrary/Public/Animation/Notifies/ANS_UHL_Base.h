@@ -35,4 +35,10 @@ protected:
 	UFUNCTION()
 	virtual void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 	// TODO OnMontageBlendOut, OnMontageInterrupted, OnCancelled ...
+	
+private:
+	TWeakObjectPtr<const UAnimMontage> CurrentAnimMontage;
+
+	UFUNCTION()
+	void _OnMontageBlendOut(UAnimMontage* Montage, bool bInterrupted);
 };

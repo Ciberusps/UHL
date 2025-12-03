@@ -12,13 +12,13 @@ void UANS_UHL_Base::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	const UAnimMontage* CurrentAnimMontage = EventReference.GetNotify()->GetLinkedMontage();
+	CurrentAnimMontage = EventReference.GetNotify()->GetLinkedMontage();
 
-	if (CurrentAnimMontage)
+	if (CurrentAnimMontage.IsValid())
 	{
 		if (bUseOnMontageBlendingOut)
 		{
-			MeshComp->AnimScriptInstance->OnMontageBlendingOut.AddUniqueDynamic(this, &UANS_UHL_Base::OnMontageBlendingOut);
+			MeshComp->AnimScriptInstance->OnMontageBlendingOut.AddUniqueDynamic(this, &UANS_UHL_Base::_OnMontageBlendOut);
 		}
 	}
 }
@@ -34,7 +34,7 @@ void UANS_UHL_Base::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBas
 
 	if (bUseOnMontageBlendingOut)
 	{
-		MeshComp->AnimScriptInstance->OnMontageBlendingOut.RemoveDynamic(this, &UANS_UHL_Base::OnMontageBlendingOut);
+		MeshComp->AnimScriptInstance->OnMontageBlendingOut.RemoveDynamic(this, &UANS_UHL_Base::_OnMontageBlendOut);
 	}
 }
 
@@ -60,5 +60,15 @@ void UANS_UHL_Base::OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupte
 		{
 			NotifyEndOrBlendOut(SkeletalMeshComponent);
 		}
+	}
+}
+
+void UANS_UHL_Base::_OnMontageBlendOut(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (!Montage) return;
+	
+	if (Montage == CurrentAnimMontage)
+	{
+		OnMontageBlendingOut(Montage, bInterrupted);
 	}
 }
