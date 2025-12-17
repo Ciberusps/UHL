@@ -76,17 +76,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AnimNotify|Camera")
 	float LifeSpanAfterEnd = 3.0f;
 
-    // UAnimNotifyState interface
+	// UAnimNotifyState interface
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-    // End of UAnimNotifyState interface
+	// End of UAnimNotifyState interface
 
 private:
-    /** The camera actor instance we spawned at NotifyBegin. */
-	UPROPERTY()
-    ACameraActor* SpawnedCameraInstance = nullptr;
+	struct FNotifyState
+	{
+		TWeakObjectPtr<ACameraActor> SpawnedCamera;
+		TWeakObjectPtr<AActor> PreviousViewTarget;
+	};
 
-    /** The original view target we stored so we can restore at NotifyEnd. */
-	UPROPERTY()
-    AActor* PreviousViewTarget = nullptr;
+	static TMap<TWeakObjectPtr<USkeletalMeshComponent>, FNotifyState> NotifyStateMap;
 };

@@ -7,9 +7,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 
+TMap<TWeakObjectPtr<USkeletalMeshComponent>, UANS_SpawnAndSwitchPlayerCamera::FNotifyState> UANS_SpawnAndSwitchPlayerCamera::NotifyStateMap;
+
 void UANS_SpawnAndSwitchPlayerCamera::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
-    Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
+	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
     if (!MeshComp || !CameraToSpawnClass)
     {
@@ -34,90 +36,84 @@ void UANS_SpawnAndSwitchPlayerCamera::NotifyBegin(USkeletalMeshComponent* MeshCo
         return;
     }
 
-    // 2. Store the previous view target (so we can return to it later)
-    PreviousViewTarget = PC->GetViewTarget();
+	FNotifyState& State = NotifyStateMap.FindOrAdd(MeshComp);
+	State.PreviousViewTarget = PC->GetViewTarget();
 
-    // 3. Spawn the camera actor at the owner’s location (or at a specific socket)
-    FTransform SpawnTransform = OwningActor->GetActorTransform();
-    if (AttachSocketName != NAME_None)
-    {
-        // If we want to attach to a socket/bone, get its world transform
-        if (MeshComp->DoesSocketExist(AttachSocketName))
-        {
-            SpawnTransform = MeshComp->GetSocketTransform(AttachSocketName);
-        }
-    }
+	FTransform SpawnTransform = OwningActor->GetActorTransform();
+	if (AttachSocketName != NAME_None && MeshComp->DoesSocketExist(AttachSocketName))
+	{
+		SpawnTransform = MeshComp->GetSocketTransform(AttachSocketName);
+	}
 
-    FActorSpawnParameters SpawnParams;
-    SpawnParams.Owner = OwningActor;
-    SpawnParams.Instigator = Cast<APawn>(OwningActor);
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = OwningActor;
+	SpawnParams.Instigator = Cast<APawn>(OwningActor);
 
-    SpawnedCameraInstance = Cast<ACameraActor>(
-        OwningActor->GetWorld()->SpawnActor<ACameraActor>(
-            CameraToSpawnClass,
-            SpawnTransform,
-            SpawnParams
-        )
-    );
+	ACameraActor* SpawnedCamera = Cast<ACameraActor>(
+		OwningActor->GetWorld()->SpawnActor<ACameraActor>(
+			CameraToSpawnClass,
+			SpawnTransform,
+			SpawnParams
+		)
+	);
 
-    if (!SpawnedCameraInstance)
-    {
-        return;
-    }
+	if (!SpawnedCamera)
+	{
+		NotifyStateMap.Remove(MeshComp);
+		return;
+	}
 
-    // Optionally, attach the spawned camera to the owner (so it follows)
-    if (AttachSocketName != NAME_None)
-    {
-        SpawnedCameraInstance->AttachToComponent(
-            MeshComp,
-            AttachRules.ToEngineRules(),
-            AttachSocketName
-        );
-    }
+	if (AttachSocketName != NAME_None)
+	{
+		SpawnedCamera->AttachToComponent(
+			MeshComp,
+			AttachRules.ToEngineRules(),
+			AttachSocketName
+		);
+	}
 
-    // 4. Blend to the spawned camera
-	PC->SetViewTargetWithBlend(SpawnedCameraInstance, BlendInTime, BlendInFunction);
+	State.SpawnedCamera = SpawnedCamera;
+	PC->SetViewTargetWithBlend(SpawnedCamera, BlendInTime, BlendInFunction);
 }
 
 void UANS_SpawnAndSwitchPlayerCamera::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-    Super::NotifyEnd(MeshComp, Animation, EventReference);
+	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-    if (!MeshComp)
-    {
-        return;
-    }
+	if (!MeshComp)
+	{
+		return;
+	}
 
-    // 1. Try to get the same PlayerController we used before
-    AActor* OwningActor = MeshComp->GetOwner();
-    if (!OwningActor)
-    {
-        return;
-    }
+	AActor* OwningActor = MeshComp->GetOwner();
+	if (!OwningActor)
+	{
+		NotifyStateMap.Remove(MeshComp);
+		return;
+	}
 
     APlayerController* PC = Cast<APlayerController>(OwningActor->GetInstigatorController());
     if (!PC)
     {
-        PC = UGameplayStatics::GetPlayerController(OwningActor->GetWorld(), 0);
+        PC = UGameplayStatics::GetPlayerController(OwningActor->GetWorld(), PlayerControllerIndex);
     }
     if (!PC)
     {
         return;
     }
 
-    // 2. Blend back to the original view target if it’s still valid
-    if (PreviousViewTarget)
-    {
-        PC->SetViewTargetWithBlend(PreviousViewTarget, BlendOutTime, BlendOutFunction);
-    }
+	if (FNotifyState* State = NotifyStateMap.Find(MeshComp))
+	{
+		if (State->PreviousViewTarget.IsValid())
+		{
+			PC->SetViewTargetWithBlend(State->PreviousViewTarget.Get(), BlendOutTime, BlendOutFunction);
+		}
 
-    // 3. Destroy the spawned camera actor
-    if (SpawnedCameraInstance)
-    {
-        SpawnedCameraInstance->SetLifeSpan(3);
-        SpawnedCameraInstance = nullptr;
-    }
+		if (State->SpawnedCamera.IsValid())
+		{
+			State->SpawnedCamera->SetLifeSpan(LifeSpanAfterEnd);
+		}
+	}
 
-    // 4. Clear the stored pointer
-    PreviousViewTarget = nullptr;
+	NotifyStateMap.Remove(MeshComp);
 }
