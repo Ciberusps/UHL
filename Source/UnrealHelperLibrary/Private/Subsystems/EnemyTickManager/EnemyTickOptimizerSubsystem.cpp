@@ -32,7 +32,10 @@ void UEnemyTickOptimizerSubsystem::Initialize(FSubsystemCollectionBase& Collecti
 void UEnemyTickOptimizerSubsystem::Deinitialize()
 {
 	// Clear the timer when the subsystem is shut down
-	GetWorld()->GetTimerManager().ClearTimer(TickOptimizerTimerHandle);
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(TickOptimizerTimerHandle);
+	}
 	
 	Super::Deinitialize();
 }
