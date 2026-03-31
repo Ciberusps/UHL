@@ -922,8 +922,11 @@ float UUnrealHelperLibraryBPL::ConvertPercentToMultiplier(float Percent) { retur
 AActor* UUnrealHelperLibraryBPL::FindAttachedActorByTag(AActor* ActorIn, FName Tag)
 {
 	TArray<AActor*> OutActors;
-	ActorIn->GetAttachedActors(OutActors, true, true);
-
+	if (IsValid(ActorIn))
+	{
+		ActorIn->GetAttachedActors(OutActors, true, true);
+	}
+	
 	AActor** ActorSearchResult = OutActors.FindByPredicate([Tag](const AActor* Actor)
 	{
 		return Actor->ActorHasTag(Tag);

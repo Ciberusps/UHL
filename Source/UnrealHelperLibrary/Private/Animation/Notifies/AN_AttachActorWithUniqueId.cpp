@@ -62,11 +62,14 @@ void UAN_AttachActorWithUniqueId::Notify(
 	}
 	else
 	{
-		if (ChildActorTarget)
+		if (IsValid(ChildActorTarget))
 		{
 			UUHLAttachmentTargetEvaluator* Evaluator = NewObject<UUHLAttachmentTargetEvaluator>(OwnerActor, ChildActorTarget);
 			AttachmentComp = Evaluator->GetMeshComponent(OwnerActor);
-			SpawnedActor = AttachmentComp->GetWorld()->SpawnActor<AActor>(ActorClass, AttachmentComp->GetSocketTransform(SocketName), ActorSpawnParameters);
+			if (IsValid(AttachmentComp))
+			{
+				SpawnedActor = AttachmentComp->GetWorld()->SpawnActor<AActor>(ActorClass, AttachmentComp->GetSocketTransform(SocketName), ActorSpawnParameters);
+			}
 		}
 	}
 	

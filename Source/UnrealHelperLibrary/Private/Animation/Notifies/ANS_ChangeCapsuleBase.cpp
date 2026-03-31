@@ -235,14 +235,14 @@ void UANS_ChangeCapsuleBase::NotifyEnd(
     {
         CapsuleComp->ShapeColor = OriginalShapeColor.ToFColor(/*bSRGB=*/ true);
     }
-
+	
+	RestoreOriginalCollisionSettings();
+	
     // Clear internal pointers & flags
     CapsuleComp = nullptr;
     bHasValidOriginals = false;
     ElapsedTime = 0.0f;
     NotifyTotalDuration = 0.0f;
-
-	RestoreOriginalCollisionSettings();
 }
 
 void UANS_ChangeCapsuleBase::SaveOriginalCollisionSettings()
