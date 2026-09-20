@@ -47,38 +47,53 @@ void UAN_DetachActorWithUniqueId::Notify(
 
 	AttachedActor->DetachFromActor(DetachmentRules.ToEngineRules());
 	
-	// checking that physics enabled before AutoDestroy and it worth to create timer 
-	if (bEnablePhysicsOnDetach && EnablePhysicsDelay < AutoDestroyDelay)
+	// checking that physics enabled before AutoDestroy and it worth to create timer
+	if (bEnablePhysicsOnDetach && (!bAutoDestroy || EnablePhysicsDelay < AutoDestroyDelay))
 	{
-		FTimerDelegate Delegate;
-		Delegate.BindLambda([AttachedActor]()
+		const TWeakObjectPtr<AActor> WeakActor = AttachedActor;
+		const bool bApplyProfile = bOverrideCollisionProfile;
+		const FName ProfileName = CollisionProfileOnDetach.Name;
+		const bool bApplyImpulse = bAddImpulseOnDetach;
+		const FVector LocalImpulse = DetachImpulse;
+		const bool bVelChange = bImpulseAsVelocityChange;
+
+		auto EnablePhysics = [WeakActor, bApplyProfile, ProfileName, bApplyImpulse, LocalImpulse, bVelChange]()
 		{
-			// TODO: improve detachment logic
-			TArray<UActorComponent*> Comps = AttachedActor->K2_GetComponentsByClass(UPrimitiveComponent::StaticClass());
+			AActor* Actor = WeakActor.Get();
+			if (!IsValid(Actor)) return;
+
+			TArray<UActorComponent*> Comps = Actor->K2_GetComponentsByClass(UPrimitiveComponent::StaticClass());
 			for (UActorComponent* Comp : Comps)
 			{
-				if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(Comp))
+				UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(Comp);
+				if (!Prim) continue;
+
+				// the profile alone drives CollisionEnabled - forcing QueryAndPhysics here would flip the
+				// component to "Custom" and resurrect collision even on a NoCollision profile
+				if (bApplyProfile)
 				{
-					Prim->SetCollisionProfileName(TEXT("PhysicsActor"));
-				    Prim->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-					Prim->SetSimulatePhysics(true);
-					// Prim->SetEnableGravity(true);
-					// // ensure it has a physics‐friendly collision profile
-				    // Prim->SetCollisionProfileName(TEXT("PhysicsActor"));
-				    // Prim->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-				    //
-				    // // turn on physics and wake it up
-				    // Prim->SetSimulatePhysics(true);
-				    // Prim->WakeAllRigidBodies();
-		
-				    // 3) (Optional) give it a little kick
-				    const FVector Impulse = AttachedActor->GetActorForwardVector() * 200.0f
-										 + FVector::UpVector * 100.0f;
-				    Prim->AddImpulse(Impulse, NAME_None, /*bVelChange=*/ true);
+					Prim->SetCollisionProfileName(ProfileName);
+				}
+
+				Prim->SetSimulatePhysics(true);
+
+				if (bApplyImpulse && !LocalImpulse.IsNearlyZero())
+				{
+					Prim->AddImpulse(Actor->GetActorRotation().RotateVector(LocalImpulse), NAME_None, bVelChange);
 				}
 			}
-		});
-		MeshComp->GetWorld()->GetTimerManager().SetTimer(TimerHandle, Delegate, EnablePhysicsDelay, false);
+		};
+
+		if (EnablePhysicsDelay <= 0.0f)
+		{
+			EnablePhysics();
+		}
+		else
+		{
+			FTimerHandle LocalTimerHandle;
+			MeshComp->GetWorld()->GetTimerManager().SetTimer(
+				LocalTimerHandle, FTimerDelegate::CreateLambda(EnablePhysics), EnablePhysicsDelay, false);
+		}
 	}
 	
 	if (bAutoDestroy)

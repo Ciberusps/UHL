@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Animation/Notifies/AN_UHL_Base.h"
 #include "Core/UHLAttachmentRules.h"
+#include "Engine/EngineTypes.h"
 #include "AN_DetachActorWithUniqueId.generated.h"
 
 /**
@@ -27,6 +28,27 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="DetachActorWithUniqueId", meta=(EditCondition="bEnablePhysicsOnDetach", EditConditionHides))
 	float EnablePhysicsDelay = 0.2f;
+	
+	/** When false the detached actor keeps the collision profile it was authored with (e.g. NoCollision). */
+    	UPROPERTY(EditAnywhere, Category="DetachActorWithUniqueId", meta=(EditCondition="bEnablePhysicsOnDetach", EditConditionHides))
+    	bool bOverrideCollisionProfile = true;
+    
+    	/** Use a profile that ignores Pawn/Enemy/Player (e.g. "UnequippedItem") so the actor is not launched by
+    	 *  depenetration when physics turns on while it is still inside the owner's mesh. */
+    	UPROPERTY(EditAnywhere, Category="DetachActorWithUniqueId", meta=(EditCondition="bEnablePhysicsOnDetach && bOverrideCollisionProfile", EditConditionHides))
+    	FCollisionProfileName CollisionProfileOnDetach = FCollisionProfileName(FName("PhysicsActor"));
+    
+    	/** Optional kick applied right after physics is enabled. */
+    	UPROPERTY(EditAnywhere, Category="DetachActorWithUniqueId", meta=(EditCondition="bEnablePhysicsOnDetach", EditConditionHides))
+    	bool bAddImpulseOnDetach = false;
+    
+    	/** Impulse in the detached actor's local space (X = forward, Z = up). */
+    	UPROPERTY(EditAnywhere, Category="DetachActorWithUniqueId", meta=(EditCondition="bEnablePhysicsOnDetach && bAddImpulseOnDetach", EditConditionHides))
+    	FVector DetachImpulse = FVector(200.0f, 0.0f, 100.0f);
+    
+    	/** True = velocity change in cm/s (mass ignored), false = real impulse scaled by mass. */
+    	UPROPERTY(EditAnywhere, Category="DetachActorWithUniqueId", meta=(EditCondition="bEnablePhysicsOnDetach && bAddImpulseOnDetach", EditConditionHides))
+    	bool bImpulseAsVelocityChange = true;
 
 	// TODO: add choosing preset or PhysicsSettings
 	// UPROPERTY(EditAnywhere, Category="DetachActorWithUniqueId", meta=(EditCondition="bEnablePhysicsOnDetach", EditConditionHides))
@@ -54,9 +76,4 @@ protected:
 
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 	
-
-private:
-	UPROPERTY()
-	FName CollisionProfileName = FName("PhysicsActor");
-	FTimerHandle TimerHandle;
 };
