@@ -908,7 +908,7 @@ EUHLDirection UUnrealHelperLibraryBPL::GetEnemyMovementDirectionRelativeToCharac
         DrawDebugLine(World, ActorLocation, ActorLocation + ChosenVec, FColor::Red, false, DebugDuration, 0, DebugThickness);
 
         // Label result using clean name
-        UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EUHLDirection"), true);
+        UEnum* EnumPtr = StaticEnum<EUHLDirection>();
         FString Name = EnumPtr ? EnumPtr->GetNameStringByValue((int64)DirEnum) : TEXT("None");
         DrawDebugString(World, ActorLocation + FVector(0,0,50), Name, nullptr, FColor::White, DebugDuration, true);
     }
