@@ -46,7 +46,7 @@ void UUnrealHelperLibraryBPL::DebugPrintStrings(const FString& A, const FString&
 	if (!bEnabled)
 		return;
 
-	UKismetSystemLibrary::PrintString(nullptr, StringResult, true, true, FLinearColor(0, 0.66, 1), Duration, Key);
+	UKismetSystemLibrary::PrintString(nullptr, StringResult, true, true, FLinearColor(0.f, 0.66f, 1.f), Duration, Key);
 }
 
 void UUnrealHelperLibraryBPL::DebugPrintString(const UObject* WorldContextObject, const FString& A, float Duration, const FName Key, const bool bEnabled)
@@ -57,7 +57,7 @@ void UUnrealHelperLibraryBPL::DebugPrintString(const UObject* WorldContextObject
 	if (!bEnabled)
 		return;
 
-	UKismetSystemLibrary::PrintString(WorldContextObject, StringResult, true, true, FLinearColor(0, 0.66, 1), Duration, Key);
+	UKismetSystemLibrary::PrintString(WorldContextObject, StringResult, true, true, FLinearColor(0.f, 0.66f, 1.f), Duration, Key);
 }
 
 void UUnrealHelperLibraryBPL::DrawDebugBar() {}
