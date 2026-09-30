@@ -151,7 +151,6 @@ public:
 
 	// return all assets of specified class in template
 	template <typename T>
-	UFUNCTION(BlueprintPure, Category = "UnrealHelperLibrary|Utils")
 	static void GetAssetsOfClass(TArray<T*>& OutArray)
 	{
 		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
